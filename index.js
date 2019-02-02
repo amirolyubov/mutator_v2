@@ -13,30 +13,8 @@ function logger(p, from) {
   })
 }
 
-function calculate(p) {
-  const _p = p
-
-  logger(_p, 'calculate')
-  return {
-    population: _p,
-    meta: {
-
-    }
-  }
-}
-function sort(p) {
-  const _p = p.population
-
-  logger(_p, 'sort')
-  return {
-    population: _p,
-    meta: {
-
-    }
-  }
-}
 function mutate(p) {
-  const _p = p.population
+  const _p = p
   const mutator = new Mutator({ p: _p })
   const mutated = mutator.rand_gen(1).done()
 
@@ -48,10 +26,22 @@ function mutate(p) {
     }
   }
 }
-function populate(p) {
+function sort(p) {
+  const _p = p.population
+  const sorted = _p.sort((a, b) => utils.calculateOne(a).price < utils.calculateOne(b).price ? 1 : -1)
+
+  logger(sorted, 'sort')
+  return {
+    population: sorted,
+    meta: {
+
+    }
+  }
+}
+function clean(p) {
   const _p = p.population
 
-  logger(_p, 'populate')
+  logger(_p, 'clean')
   return {
     population: _p,
     meta: {
@@ -61,10 +51,9 @@ function populate(p) {
 }
 function evolute(pp) {
   console.clear()
-  const calculated = calculate(pp)
-  const sorted = sort(calculated)
-  const mutated = mutate(sorted)
-  const next = populate(mutated)
+  const mutated = mutate(pp)
+  const sorted = sort(mutated)
+  const next = clean(sorted)
 
   return next.population
 }
