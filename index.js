@@ -13,8 +13,19 @@ function logger(p, from) {
   })
 }
 
-function mutate(p) {
+function clean(p) {
   const _p = p
+
+  logger(_p, 'clean')
+  return {
+    population: _p,
+    meta: {
+
+    }
+  }
+}
+function mutate(p) {
+  const _p = p.population
   const mutator = new Mutator({ p: _p })
   const mutated = mutator.rand_gen(1).done()
 
@@ -38,22 +49,11 @@ function sort(p) {
     }
   }
 }
-function clean(p) {
-  const _p = p.population
-
-  logger(_p, 'clean')
-  return {
-    population: _p,
-    meta: {
-
-    }
-  }
-}
 function evolute(pp) {
   console.clear()
-  const mutated = mutate(pp)
-  const sorted = sort(mutated)
-  const next = clean(sorted)
+  const cleaned = clean(pp)
+  const mutated = mutate(cleaned)
+  const next = sort(mutated)
 
   return next.population
 }
