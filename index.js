@@ -1,17 +1,10 @@
 const data = require('./data.js');
 const config = require('./config.js')
-const utils = require('./utils.js');
+const { calculateOne } = require('./utils.js');
 const Mutator = require('./mutator.js')
+const { logger, final } = require('./logger.js')
 
 const initial_population = data.initial_population
-
-function logger(p, from) {
-  console.log(`\nlog from ${from}`);
-  p.map((item, index) => {
-    const calculated = utils.calculateOne(item)
-    console.log(`${index + 1}${index < 9 ? ' ' : ''}        ${item} | w ${calculated.weight} p ${calculated.price}`)
-  })
-}
 
 function clean(p) {
   const _p = p
@@ -39,7 +32,7 @@ function mutate(p) {
 }
 function sort(p) {
   const _p = p.population
-  const sorted = _p.sort((a, b) => utils.calculateOne(a).price < utils.calculateOne(b).price ? 1 : -1)
+  const sorted = _p.sort((a, b) => calculateOne(a).price < calculateOne(b).price ? 1 : -1)
 
   logger(sorted, 'sort')
   return {
@@ -54,6 +47,7 @@ function evolute(pp) {
   const cleaned = clean(pp)
   const mutated = mutate(cleaned)
   const next = sort(mutated)
+  final(next.population[0])
 
   return next.population
 }
