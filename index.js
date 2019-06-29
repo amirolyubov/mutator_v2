@@ -1,17 +1,22 @@
 const data = require('./data.js');
-const config = require('./config.js')
+const { max_bag_size, pp_size } = require('./config.js')
 const { calculateOne } = require('./utils.js');
 const Mutator = require('./mutator.js')
 const { logger, final } = require('./logger.js')
 
 const initial_population = data.initial_population
+console.log(initial_population);
+let interval = null
 
-function clean(p) {
+function child(p) {
   const _p = p
+  const _best = _p.filter(item => !!item).filter((_, index) => index < 5)[0]
 
-  logger(_p, 'clean')
+  const _new = Array.from({ length: pp_size }, () => _best)
+
+  logger(_new, 'child')
   return {
-    population: _p,
+    population: _new,
     meta: {
 
     }
@@ -19,12 +24,12 @@ function clean(p) {
 }
 function mutate(p) {
   const _p = p.population
-  const mutator = new Mutator({ p: _p })
-  const mutated = mutator.rand_gen(1).done()
+  const _mutator = new Mutator({ p: _p })
+  const _mutated = _mutator.rand_gen(1).done()
 
-  logger(_p, 'mutate')
+  logger(_mutated, 'mutate')
   return {
-    population: mutated,
+    population: _mutated,
     meta: {
 
     }
@@ -32,35 +37,65 @@ function mutate(p) {
 }
 function sort(p) {
   const _p = p.population
-  const sorted = _p.sort((a, b) => calculateOne(a).price < calculateOne(b).price ? 1 : -1)
+  const _sorted = _p.filter(item => !!item)
+                    .sort((a, b) => calculateOne(a).price < calculateOne(b).price ? 1 : -1)
+                    .filter(item => calculateOne(item).weight <= max_bag_size)
+  const _final = Array.from({ length: pp_size }, (_, index) => _sorted[index] || null)
 
-  logger(sorted, 'sort')
+  logger(_final, 'sort')
   return {
-    population: sorted,
+    population: _final,
     meta: {
 
     }
   }
 }
-function evolute(pp) {
+function evolute(pp, best) {
   console.clear()
-  const cleaned = clean(pp)
-  const mutated = mutate(cleaned)
-  const next = sort(mutated)
-  final(next.population[0])
+  if (!pp.every(item => item === null)) {
 
-  return next.population
+    // const cleaned = clean(pp)
+    const children = child(pp)
+    const mutated = mutate(children)
+    const next = sort(mutated)
+
+    if (best) {
+
+    } else {
+    }
+
+
+    return {
+      population: next.population,
+      best: next.population[0],
+    }
+  } else { return [] }
 }
 
 function start() {
-  let current = []
-  setInterval(() => {
+  let current = [],
+      count = 0,
+      best = [0],
+      count_best = 0
+
+  interval = setInterval(() => {
+    count++
     if (current.length === 0) {
-      current = evolute(initial_population)
+      current = evolute(initial_population).population
     } else {
-      current = evolute(current)
+      const step = evolute(current, best)
+      if (calculateOne(step.best)) {
+        const isBetter = calculateOne(step.best).price > calculateOne(best).price
+        current = step.population
+        best = isBetter ? step.best : best
+        count_best = isBetter ? count : count_best
+        final(best, count, count_best)
+      } else {
+        clearInterval(interval)
+        final(best, count, count_best)
+      }
     }
-  }, 200)
+  }, 100)
 }
 
 start()

@@ -1,6 +1,7 @@
 const data = require('./data.js');
 
 function calculateOne(item) {
+  if (!item) return null
   let total_weight = 0, total_price = 0
   const arr_from_set = Object.values(data.set)
   const calculated = item

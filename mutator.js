@@ -17,6 +17,7 @@ class Mutator {
 
   rand_gen(count) {
     this.p = this.p.map(_item => {
+      if (!_item) return null
       const gens = Array.from({ length: count }, () => Math.floor(Math.random() * this.item_length))
       return _item.map((gen, index) => gens.includes(index) ? Number(!Boolean(gen)) : gen)
     })
